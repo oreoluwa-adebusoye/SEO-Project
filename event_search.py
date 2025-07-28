@@ -1,6 +1,5 @@
 import os
 from dotenv import load_dotenv
-load_dotenv()
 from langchain.agents import Tool, initialize_agent
 from langchain.chat_models import ChatOpenAI
 from langchain.utilities import GoogleSearchAPIWrapper

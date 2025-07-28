@@ -1,16 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>{% block title %}LinkUp{% endblock %}</title>
+    <meta charset="UTF-8">
+    <title>{% block title %}SEO Project{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css">
 <body>
-    <nav>
-        <a href="/">Home</a>
-        <a href="/profile">Profile</a>
-        <a href="/logout">Logout</a>
-    </nav>
 
-    {% block content %}{% endblock %}
+    <!-- Flash messages -->
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main content of the page -->
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
 </body>
 </html>
