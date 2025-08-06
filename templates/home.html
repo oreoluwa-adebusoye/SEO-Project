@@ -5,5 +5,9 @@
 {% block content %}
     <h1>Welcome!</h1>
     <p>Discover events and connect with people in real life.</p>
-{% endblock %}
 
+    <a href="{{ url_for('homepage') }}" class="btn btn-primary me-2">Homepage</a>
+    <a href="{{ url_for('events') }}" class="btn btn-success me-2">Events</a>
+    <a href="{{ url_for('user_profile_page') }}" class="btn btn-info">User Profile</a>
+
+{% endblock %} 
