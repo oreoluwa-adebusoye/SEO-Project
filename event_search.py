@@ -1,38 +1,51 @@
-import os
-from dotenv import load_dotenv
-from langchain.agents import Tool, initialize_agent
-from langchain.chat_models import ChatOpenAI
-from langchain.utilities import GoogleSearchAPIWrapper
-from langchain.memory import ConversationBufferMemory
+import os, requests
 
-# Load keys
-load_dotenv()
-openai_key = os.getenv("OPENAI_API_KEY")
-serp_key = os.getenv("GOOGLE_API_KEY")
+TM_BASE = "https://app.ticketmaster.com/discovery/v2/events.json"
+TM_KEY = os.getenv("TICKETMASTER_API_KEY")
 
-# Setup search tool
-search = GoogleSearchAPIWrapper(google_api_key=os.getenv("GOOGLE_API_KEY"))
+def search_ticketmaster(keyword="tech", city="New York", size=20, radius_miles=25, lat=None, lon=None):
+    if not TM_KEY:
+        raise RuntimeError("Missing TICKETMASTER_API_KEY")
 
-tools = [
-    Tool(
-        name="Search",
-        func=search.run,
-        description="Use this to search for events happening now"
-    )
-]
+    params = {
+        "apikey": TM_KEY,
+        "size": size,
+        "radius": radius_miles,
+        "sort": "date,asc",
+        "countryCode": "US",
+    }
+    if keyword:
+        params["keyword"] = keyword
+    if lat and lon:
+        params["latlong"] = f"{lat},{lon}"
+    elif city:
+        params["city"] = city
 
-# Setup agent
-llm = ChatOpenAI(temperature=0, openai_api_key=openai_key)
-memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+    r = requests.get(TM_BASE, params=params, timeout=12)
+    r.raise_for_status()
+    items = r.json().get("_embedded", {}).get("events", [])
 
-agent = initialize_agent(
-    tools=tools,
-    llm=llm,
-    agent="chat-conversational-react-description",
-    verbose=True,
-    memory=memory
-)
+    events = []
+    for e in items:
+        venue = (e.get("_embedded", {}).get("venues", [{}])[0]) if e.get("_embedded") else {}
 
-# Example query
-response = agent.run("What events are happening in NYC this weekend?")
-print(response)
+        # pick a wide image (16:9) with decent width; fall back to first
+        img = None
+        imgs = e.get("images", []) or []
+        wide = [i for i in imgs if i.get("ratio") in ("16_9", "3_2")]
+        if wide:
+            img = max(wide, key=lambda i: i.get("width", 0)).get("url")
+        elif imgs:
+            img = imgs[0].get("url")
+
+        events.append({
+            "id": e.get("id"),
+            "name": e.get("name"),
+            "url": e.get("url"),
+            "description": e.get("info") or e.get("pleaseNote"),
+            "start": (e.get("dates", {}).get("start", {}).get("dateTime")),
+            "venue": venue.get("name"),
+            "city": (venue.get("city", {}) or {}).get("name"),
+            "image_url": img,  # <-- new
+        })
+    return events

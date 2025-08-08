@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="container mt-4">
+  <div class="row">
+    <!-- Left: conversation list -->
+     <form method="POST" class="d-flex gap-2 mb-3">
+  <input name="username" class="form-control" placeholder="Start chat with @username" required>
+  <button class="btn btn-primary" type="submit">Go</button>
+</form>
+
+    <div class="col-md-4">
+      <h5>Messages</h5>
+      <ul class="list-group">
+        {% if conversations %}
+          {% for other, last in conversations %}
+            <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center
+                      {% if current_chat and current_chat.id == other.id %}active{% endif %}"
+               href="{{ url_for('messages_thread', username=other.username) }}">
+              <div>
+                <div class="fw-semibold">@{{ other.username }}</div>
+                <small class="text-muted">
+                  {{ (last.content[:28] ~ ('…' if last.content|length > 28 else '')) if last else '' }}
+                </small>
+              </div>
+              {% if last and (last.recipient_id == current_user.id) and (not last.read) %}
+                <span class="badge bg-primary rounded-pill">New</span>
+              {% endif %}
+            </a>
+          {% endfor %}
+        {% else %}
+          <li class="list-group-item">No conversations yet.</li>
+        {% endif %}
+      </ul>
+    </div>
+
+    <!-- Right: thread -->
+    <div class="col-md-8">
+      {% if current_chat %}
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <h5 class="mb-0">@{{ current_chat.username }}</h5>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('messages_index') }}">All chats</a>
+        </div>
+
+        <div class="border rounded p-3 mb-3" style="height: 50vh; overflow-y:auto;">
+          {% if messages %}
+            {% for m in messages %}
+              <div class="mb-2">
+                <div class="small text-muted">
+                  {{ 'You' if m.sender_id == current_user.id else '@' ~ current_chat.username }}
+                  • {{ m.created_at.strftime('%b %d, %I:%M %p') }}
+                </div>
+                <div class="p-2 rounded {{ 'bg-light' if m.sender_id == current_user.id else 'bg-white border' }}">
+                  {{ m.content }}
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-muted">No messages yet. Say hi 👋</div>
+          {% endif %}
+        </div>
+
+        <form method="POST" class="d-flex gap-2">
+          <input name="content" class="form-control" placeholder="Type a message..." autocomplete="off" required>
+          <button class="btn btn-primary" type="submit">Send</button>
+        </form>
+      {% else %}
+        <div class="text-muted">Pick a conversation on the left.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}
