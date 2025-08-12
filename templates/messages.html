@@ -1,74 +1,114 @@
 {% extends "layout.html" %}
+{% block title %}Messages | LinkUp{% endblock %}
 {% block content %}
 
-<div class="container mt-4">
-  <div class="row">
-    <!-- Left: conversation list -->
-     <form method="POST" class="d-flex gap-2 mb-3">
-  <input name="username" class="form-control" placeholder="Start chat with @username" required>
-  <button class="btn btn-primary" type="submit">Go</button>
-</form>
+<div class="container py-4">
+  <div class="row g-4">
 
-    <div class="col-md-4">
-      <h5>Messages</h5>
-      <ul class="list-group">
-        {% if conversations %}
-          {% for other, last in conversations %}
-            <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center
-                      {% if current_chat and current_chat.id == other.id %}active{% endif %}"
-               href="{{ url_for('messages_thread', username=other.username) }}">
-              <div>
-                <div class="fw-semibold">@{{ other.username }}</div>
-                <small class="text-muted">
-                  {{ (last.content[:28] ~ ('…' if last.content|length > 28 else '')) if last else '' }}
-                </small>
-              </div>
-              {% if last and (last.recipient_id == current_user.id) and (not last.read) %}
-                <span class="badge bg-primary rounded-pill">New</span>
-              {% endif %}
-            </a>
-          {% endfor %}
-        {% else %}
-          <li class="list-group-item">No conversations yet.</li>
-        {% endif %}
-      </ul>
-    </div>
-
-    <!-- Right: thread -->
-    <div class="col-md-8">
-      {% if current_chat %}
+    <!-- LEFT: Conversations -->
+    <div class="col-lg-4">
+      <div class="card p-3 h-100">
         <div class="d-flex align-items-center justify-content-between mb-2">
-          <h5 class="mb-0">@{{ current_chat.username }}</h5>
-          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('messages_index') }}">All chats</a>
+          <h5 class="mb-0">Messages</h5>
         </div>
 
-        <div class="border rounded p-3 mb-3" style="height: 50vh; overflow-y:auto;">
-          {% if messages %}
-            {% for m in messages %}
-              <div class="mb-2">
-                <div class="small text-muted">
-                  {{ 'You' if m.sender_id == current_user.id else '@' ~ current_chat.username }}
-                  • {{ m.created_at.strftime('%b %d, %I:%M %p') }}
+        <!-- Start new chat -->
+        <form method="POST" class="d-flex gap-2 mb-3">
+          <input name="username" class="form-control" placeholder="Start chat with @username" required>
+          <button class="btn btn-primary" type="submit">Go</button>
+        </form>
+
+        <div class="list-group list-group-flush">
+          {% if conversations %}
+            {% for other, last in conversations %}
+              <a class="list-group-item list-group-item-action d-flex align-items-center gap-3 {% if current_chat and current_chat.id == other.id %}active{% endif %}"
+                 href="{{ url_for('messages_thread', username=other.username) }}">
+                <img src="{{ other.avatar_url or 'https://via.placeholder.com/40' }}" width="40" height="40" class="rounded-circle object-cover">
+                <div class="flex-grow-1">
+                  <div class="d-flex justify-content-between">
+                    <div class="fw-semibold">@{{ other.username }}</div>
+                    {% if last %}
+                      <div class="small text-muted">
+                        {{ last.created_at.strftime('%b %d, %I:%M %p') }}
+                      </div>
+                    {% endif %}
+                  </div>
+                  <div class="small text-muted">
+                    {% if last %}{{ last.content[:40] }}{% if last.content|length > 40 %}…{% endif %}{% else %}No messages yet{% endif %}
+                  </div>
                 </div>
-                <div class="p-2 rounded {{ 'bg-light' if m.sender_id == current_user.id else 'bg-white border' }}">
-                  {{ m.content }}
-                </div>
-              </div>
+                {% if last and (last.recipient_id == current_user.id) and (not last.read) %}
+                  <span class="badge bg-primary rounded-pill">New</span>
+                {% endif %}
+              </a>
             {% endfor %}
           {% else %}
-            <div class="text-muted">No messages yet. Say hi 👋</div>
+            <div class="list-group-item text-muted">No conversations yet.</div>
           {% endif %}
         </div>
-
-        <form method="POST" class="d-flex gap-2">
-          <input name="content" class="form-control" placeholder="Type a message..." autocomplete="off" required>
-          <button class="btn btn-primary" type="submit">Send</button>
-        </form>
-      {% else %}
-        <div class="text-muted">Pick a conversation on the left.</div>
-      {% endif %}
+      </div>
     </div>
+
+    <!-- RIGHT: Thread -->
+    <div class="col-lg-8">
+      <div class="card p-0">
+        {% if current_chat %}
+          <!-- Thread header -->
+          <div class="p-3 d-flex align-items-center justify-content-between border-bottom border-opacity-10">
+            <div class="d-flex align-items-center gap-3">
+              <img src="{{ current_chat.avatar_url or 'https://via.placeholder.com/44' }}" width="44" height="44" class="rounded-circle object-cover">
+              <div>
+                <div class="fw-semibold">@{{ current_chat.username }}</div>
+                {% if current_chat.school %}<div class="small text-muted">{{ current_chat.school }}</div>{% endif %}
+              </div>
+            </div>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('messages_index') }}">All chats</a>
+          </div>
+
+          <!-- Messages body -->
+          <div id="threadBody" class="p-3" style="height:60vh; overflow-y:auto;">
+            {% if messages %}
+              {% for m in messages %}
+                {% set mine = (m.sender_id == current_user.id) %}
+                <div class="d-flex mb-3 {{ 'justify-content-end' if mine else 'justify-content-start' }}">
+                  <div class="d-flex align-items-end gap-2 {{ 'flex-row-reverse' if mine else '' }}">
+                    <img src="{{ (current_user.avatar_url if mine else current_chat.avatar_url) or 'https://via.placeholder.com/36' }}"
+                         width="36" height="36" class="rounded-circle object-cover d-none d-sm-block">
+                    <div class="bubble {{ 'bubble-me' if mine else 'bubble-them' }}">
+                      <div class="small text-muted mb-1">
+                        {{ 'You' if mine else '@' ~ current_chat.username }} • {{ m.created_at.strftime('%b %d, %I:%M %p') }}
+                      </div>
+                      <div>{{ m.content }}</div>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="text-muted">No messages yet. Say hi 👋</div>
+            {% endif %}
+          </div>
+
+          <!-- Composer -->
+          <form method="POST" class="p-3 border-top border-opacity-10 d-flex gap-2">
+            <input name="content" class="form-control" placeholder="Type a message…" autocomplete="off" required>
+            <button class="btn btn-primary" type="submit"><i class="bi bi-send"></i></button>
+          </form>
+        {% else %}
+          <div class="p-5 text-center text-muted">
+            Pick a conversation on the left.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
   </div>
 </div>
 
+{% block scripts %}
+<script>
+  // Auto-scroll thread to bottom
+  const el = document.getElementById('threadBody');
+  if (el) el.scrollTop = el.scrollHeight;
+</script>
+{% endblock %}
 {% endblock %}

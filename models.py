@@ -9,6 +9,10 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    age = db.Column(db.Integer)                         # optional
+    school = db.Column(db.String(120))
+    interests = db.Column(db.Text)                      # comma-separated or free text
+    avatar_url = db.Column(db.String(255))              # profile pic
 
      # Relationship to Event model
     events = db.relationship("Event", backref="creator", lazy=True)
@@ -45,5 +49,31 @@ class Message(db.Model):
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     read = db.Column(db.Boolean, default=False, index=True)
+
+# who is going to which event (either user-created OR Ticketmaster)
+class EventAttendee(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
+
+    # internal (user-created) events
+    event_id = db.Column(db.Integer, db.ForeignKey("event.id"), nullable=True, index=True)
+
+    # external Ticketmaster events (store once locally so we can reference)
+    external_event_id = db.Column(db.Integer, db.ForeignKey("external_event.id"), nullable=True, index=True)
+
+    __table_args__ = (
+        db.CheckConstraint("(event_id IS NOT NULL) OR (external_event_id IS NOT NULL)", name="attend_has_one"),
+        db.UniqueConstraint("user_id", "event_id", name="uniq_user_event"),
+        db.UniqueConstraint("user_id", "external_event_id", name="uniq_user_external_event"),
+    )
+
+class ExternalEvent(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    tm_id = db.Column(db.String(64), unique=True, nullable=False)  # Ticketmaster ID
+    name = db.Column(db.String(200))
+    start = db.Column(db.String(32))
+    venue = db.Column(db.String(200))
+    city = db.Column(db.String(120))
+    image_url = db.Column(db.String(255))
 
     

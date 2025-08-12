@@ -1,0 +1,29 @@
+{% extends "layout.html" %}{% block content %}
+<div class="container mt-4">
+  <h3 class="mb-3">People from my events</h3>
+  {% if people %}
+    <div class="row">
+      {% for u in people %}
+        <div class="col-md-4 mb-3">
+          <div class="card p-3 h-100 d-flex">
+            <div class="d-flex align-items-center gap-3">
+              <img src="{{ u.avatar_url or 'https://via.placeholder.com/64' }}" width="64" height="64" class="rounded-circle" style="object-fit:cover;">
+              <div>
+                <div class="fw-semibold">{{ u.username }}</div>
+                {% if u.school %}<div class="text-muted small">{{ u.school }}</div>{% endif %}
+                {% if u.interests %}<div class="text-muted small">Interests: {{ u.interests }}</div>{% endif %}
+              </div>
+            </div>
+            <div class="mt-auto pt-2">
+              <a class="btn btn-sm btn-outline-primary" href="{{ url_for('profile_view', username=u.username) }}">View Profile</a>
+              <a class="btn btn-sm btn-primary ms-2" href="{{ url_for('messages_thread', username=u.username) }}">Message</a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info">RSVP to some events to see people here.</div>
+  {% endif %}
+</div>
+{% endblock %}
