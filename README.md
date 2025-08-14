@@ -29,6 +29,7 @@ Our platform encourages people to meet around shared experiences and events, fos
 - People Matching Upgrade: Expand the “People” feature so users can find others not only from shared events but also from shared interests or mutual friends.
 - Enhanced Messaging: Add group chats for each event and the ability to send images or links in messages.
 - Profile Enrichment: Let users add more profile info (interests, skills, etc.) and connect their social media or LinkedIn.
+- Event and profile legitimacy features for user safety. 
 - Event Recommendations: Use past RSVP data and profile info to suggest personalized events.
 - Mobile Optimization: Improve mobile UI for smoother use on phones.
 - Theme/Branding Update: Refine overall design with a consistent color scheme, fonts, and branding elements.
