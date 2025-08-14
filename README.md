@@ -24,10 +24,13 @@ Our platform encourages people to meet around shared experiences and events, fos
 - **API:** Ticketmaster API
 
 ## Future Updates
-- Event categorization & location-based filtering.  
-- Direct messaging between matched attendees.  
-- Group chats for events.    
-- Profile customization with more media and interests.
-
+- Live Event Categorization & location-based filtering: Instead of just showing a general events list, group events by categories like music, sports, networking, etc., to make discovery easier.
+- RSVP Tracking Page: Add a dedicated page for users to see all events they’ve RSVP’d to in one place.
+- People Matching Upgrade: Expand the “People” feature so users can find others not only from shared events but also from shared interests or mutual friends.
+- Enhanced Messaging: Add group chats for each event and the ability to send images or links in messages.
+- Profile Enrichment: Let users add more profile info (interests, skills, etc.) and connect their social media or LinkedIn.
+- Event Recommendations: Use past RSVP data and profile info to suggest personalized events.
+- Mobile Optimization: Improve mobile UI for smoother use on phones.
+- Theme/Branding Update: Refine overall design with a consistent color scheme, fonts, and branding elements.
 
 
